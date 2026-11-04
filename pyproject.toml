@@ -6,6 +6,8 @@ readme = "README.md"
 requires-python = ">=3.14"
 dependencies = [
     "django-modern-rest[jwt,msgspec,openapi]>=0.17.0",
+    "django-mongodb-backend>=6.1,<6.2",
+    "python-dotenv>=1.2.4",
 ]
 
 [dependency-groups]

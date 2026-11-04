@@ -4,8 +4,11 @@ from pathlib import Path
 from django.core.exceptions import ImproperlyConfigured
 from dmr.openapi import OpenAPIConfig
 from dmr.settings import SettingsDict
+from dotenv import load_dotenv
 
 BASE_DIR = Path(__file__).resolve().parent.parent
+load_dotenv(BASE_DIR / ".env", override=False)
+
 DEBUG = os.environ.get("DJANGO_DEBUG", "true").lower() in {"true", "1", "yes"}
 SECRET_KEY = os.environ.get("DJANGO_SECRET_KEY", "")
 if not SECRET_KEY:
@@ -22,8 +25,8 @@ ALLOWED_HOSTS = [
 ]
 
 INSTALLED_APPS = [
-    "django.contrib.auth",
-    "django.contrib.contenttypes",
+    "config.apps.MongoAuthConfig",
+    "config.apps.MongoContentTypesConfig",
     "django.contrib.sessions",
     "django.contrib.staticfiles",
     "dmr",
@@ -51,7 +54,12 @@ TEMPLATES = [
 WSGI_APPLICATION = "config.wsgi.application"
 ASGI_APPLICATION = "config.asgi.application"
 DATABASES = {
-    "default": {"ENGINE": "django.db.backends.sqlite3", "NAME": BASE_DIR / "db.sqlite3"}
+    "default": {
+        "ENGINE": "django_mongodb_backend",
+        "HOST": os.environ.get("MONGODB_URI", "mongodb://localhost:27017"),
+        "NAME": os.environ.get("MONGODB_DATABASE", "project"),
+        "OPTIONS": {"serverSelectionTimeoutMS": 5000},
+    }
 }
 LANGUAGE_CODE = "ru-ru"
 TIME_ZONE = "UTC"
@@ -59,7 +67,20 @@ USE_I18N = True
 USE_TZ = True
 STATIC_URL = "static/"
 STATIC_ROOT = BASE_DIR / "staticfiles"
-DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
+DEFAULT_AUTO_FIELD = "django_mongodb_backend.fields.ObjectIdAutoField"
+MIGRATION_MODULES = {
+    "auth": "mongo_migrations.auth",
+    "contenttypes": "mongo_migrations.contenttypes",
+}
+SESSION_ENGINE = "django.contrib.sessions.backends.db"
+AUTH_PASSWORD_VALIDATORS = [
+    {
+        "NAME": "django.contrib.auth.password_validation.UserAttributeSimilarityValidator"
+    },
+    {"NAME": "django.contrib.auth.password_validation.MinimumLengthValidator"},
+    {"NAME": "django.contrib.auth.password_validation.CommonPasswordValidator"},
+    {"NAME": "django.contrib.auth.password_validation.NumericPasswordValidator"},
+]
 
 DMR_SETTINGS: SettingsDict = {
     "validate_responses": True,
