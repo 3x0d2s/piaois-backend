@@ -548,6 +548,7 @@ source = { virtual = "." }
 dependencies = [
     { name = "django-modern-rest", extra = ["jwt", "msgspec", "openapi"] },
     { name = "django-mongodb-backend" },
+    { name = "pymongo" },
     { name = "python-dotenv" },
 ]
 
@@ -564,6 +565,7 @@ dev = [
 requires-dist = [
     { name = "django-modern-rest", extras = ["jwt", "msgspec", "openapi"], specifier = ">=0.17.0" },
     { name = "django-mongodb-backend", specifier = ">=6.1,<6.2" },
+    { name = "pymongo", specifier = ">=4.10,<5" },
     { name = "python-dotenv", specifier = ">=1.2.4" },
 ]
 
