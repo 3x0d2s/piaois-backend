@@ -33,8 +33,9 @@ INSTALLED_APPS = [
     "api.apps.ApiConfig",
 ]
 MIDDLEWARE = [
+    "api.middleware.RequestLogMiddleware",
     "django.middleware.security.SecurityMiddleware",
-    "django.contrib.sessions.middleware.SessionMiddleware",
+    "api.middleware.SafeSessionMiddleware",
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
     "django.contrib.auth.middleware.AuthenticationMiddleware",
@@ -73,6 +74,30 @@ MIGRATION_MODULES = {
     "contenttypes": "mongo_migrations.contenttypes",
 }
 SESSION_ENGINE = "django.contrib.sessions.backends.db"
+SESSION_COOKIE_HTTPONLY = True
+SESSION_COOKIE_SECURE = not DEBUG
+CSRF_COOKIE_SECURE = not DEBUG
+SESSION_COOKIE_SAMESITE = "Lax"
+CSRF_TRUSTED_ORIGINS = [
+    origin.strip()
+    for origin in os.environ.get("DJANGO_CSRF_TRUSTED_ORIGINS", "").split(",")
+    if origin.strip()
+]
+CSRF_FAILURE_VIEW = "config.urls.csrf_failure"
+DATA_UPLOAD_MAX_MEMORY_SIZE = 65536
+INGEST_API_KEY = os.environ.get("INGEST_API_KEY", "")
+
+LOGGING = {
+    "version": 1,
+    "disable_existing_loggers": False,
+    "formatters": {
+        "standard": {"format": "{asctime} {levelname} {name} {message}", "style": "{"},
+    },
+    "handlers": {
+        "console": {"class": "logging.StreamHandler", "formatter": "standard"}
+    },
+    "loggers": {"api": {"handlers": ["console"], "level": "INFO", "propagate": False}},
+}
 AUTH_PASSWORD_VALIDATORS = [
     {
         "NAME": "django.contrib.auth.password_validation.UserAttributeSimilarityValidator"
@@ -83,7 +108,10 @@ AUTH_PASSWORD_VALIDATORS = [
 ]
 
 DMR_SETTINGS: SettingsDict = {
+    "global_error_handler": "api.errors.api_error_handler",
     "validate_responses": True,
     "semantic_responses": True,
-    "openapi_config": OpenAPIConfig(title="Project REST API", version="0.1.0"),
+    "openapi_config": OpenAPIConfig(
+        title="Allergy Risk Monitoring API", version="0.1.0"
+    ),
 }
